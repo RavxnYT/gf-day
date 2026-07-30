@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Happy Girlfriend's Day — a little digital love letter just for you."
+    />
+    <title>Happy Girlfriend's Day ♥</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Outfit:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <canvas id="hearts-canvas" aria-hidden="true"></canvas>
+    <div class="soft-glow" aria-hidden="true"></div>
+
+    <!-- Gate: open the letter -->
+    <div id="gate" class="gate" role="dialog" aria-label="Open your surprise">
+      <button type="button" id="open-letter" class="gate__btn" aria-label="Open your love letter">
+        <span class="gate__seal" aria-hidden="true">
+          <svg viewBox="0 0 64 64" width="56" height="56">
+            <path
+              fill="currentColor"
+              d="M32 56s-22-13.5-22-30a12 12 0 0 1 22-6 12 12 0 0 1 22 6c0 16.5-22 30-22 30z"
+            />
+          </svg>
+        </span>
+        <span class="gate__label">Tap to open</span>
+        <span class="gate__sub">a little something for you</span>
+      </button>
+    </div>
+
+    <main id="story" class="story is-locked" aria-hidden="true">
+      <!-- Hero -->
+      <section class="hero">
+        <p class="hero__eyebrow reveal">August 1 · Girlfriend's Day</p>
+        <h1 class="hero__title reveal">
+          <span class="hero__line">Happy</span>
+          <span class="hero__script" id="gf-name">My Love</span>
+          <span class="hero__line">Girlfriend's Day</span>
+        </h1>
+        <p class="hero__lead reveal">
+          Of all the days in the year, this one is just for you —
+          and I still don’t have enough words for how lucky I am.
+        </p>
+        <a class="hero__scroll reveal" href="#letter" aria-label="Scroll to the letter">
+          <span>Read your letter</span>
+          <span class="hero__arrow" aria-hidden="true"></span>
+        </a>
+      </section>
+
+      <!-- Love letter -->
+      <section id="letter" class="letter">
+        <div class="letter__paper reveal">
+          <p class="letter__date">Written with my whole heart</p>
+          <h2 class="letter__heading">To the girl who makes ordinary days feel like magic,</h2>
+          <p class="letter__body" id="typewriter" aria-live="polite"></p>
+          <p class="letter__sign">Always yours,</p>
+          <p class="letter__from" id="from-name">Me</p>
+        </div>
+      </section>
+
+      <!-- Reasons -->
+      <section class="reasons" id="reasons">
+        <header class="section-head reveal">
+          <h2>Why my world looks brighter with you</h2>
+          <p>A few of the million reasons — said out loud, for once.</p>
+        </header>
+        <ol class="reasons__list" id="reasons-list"></ol>
+      </section>
+
+      <!-- Moments -->
+      <section class="moments" id="moments">
+        <header class="section-head reveal">
+          <h2>Little pieces of us</h2>
+          <p>Moments I keep replaying when I miss your smile.</p>
+        </header>
+        <div class="moments__rail" id="moments-rail"></div>
+      </section>
+
+      <!-- Promise -->
+      <section class="promise" id="promise">
+        <div class="promise__inner reveal">
+          <p class="promise__kicker">One promise</p>
+          <h2 class="promise__title">
+            I’ll keep choosing you — today, tomorrow, and every soft morning after.
+          </h2>
+          <p class="promise__text">
+            Thank you for being my favorite person, my calm, my chaos, and my home.
+          </p>
+          <button type="button" id="heart-burst" class="promise__btn">
+            Send a heart back ♥
+          </button>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <p>Made with love for Girlfriend's Day · <span id="year"></span></p>
+      </footer>
+    </main>
+
+    <div id="burst-layer" class="burst-layer" aria-hidden="true"></div>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
