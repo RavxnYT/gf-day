@@ -1,21 +1,16 @@
 // ── Customize everything here ──────────────────────────────────
 window.GF_DAY = {
-  // Her name (shows big in the hero)
   herName: "Lynn",
-
-  // Your name / signature
   yourName: "Joe",
 
-  // The love letter (types out word by word)
   letter: `I hope this finds you smiling. I made this little corner of the internet just for you, because “I love you” in a text never feels like enough.
 
 You make the quiet parts of my day feel warm. Your laugh, the way you look at me, the way you care — it all stays with me. On Girlfriend’s Day, I don’t just want to celebrate a date on the calendar. I want to celebrate you. The whole you.
 
 Thank you for being patient with me, for choosing me, and for letting me love you. I’m so proud to call you mine.
 
-Happy Girlfriend’s Day. You are, and always will be, my favorite story.`,
+Happy Girlfriend’s Day, Lynn. You are, and always will be, my favorite story.`,
 
-  // Reasons she means the world (shown as a cascading list)
   reasons: [
     "The way your smile softens everything around me.",
     "How safe I feel just knowing you’re near.",
@@ -27,7 +22,6 @@ Happy Girlfriend’s Day. You are, and always will be, my favorite story.`,
     "Simply… you. Always you.",
   ],
 
- 
   moments: [
     {
       title: "The first time",
