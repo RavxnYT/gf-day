@@ -7,32 +7,132 @@
   const moments = cfg.moments || [];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // ── Date lock: only 1 August 2026 (local device time) ──
+  // ── Date lock: 1 August 2026, Asia/Beirut (internet time) ──
   const release = cfg.releaseDate || { year: 2026, month: 8, day: 1 };
+  const timeZone = cfg.timeZone || "Asia/Beirut";
   const waitEl = document.getElementById("wait");
   const gateEl = document.getElementById("gate");
+  const waitSub = document.getElementById("wait-sub");
+  const waitStatus = document.getElementById("wait-status");
+  const waitCountdown = document.getElementById("wait-countdown");
 
-  function isReleaseDay(date = new Date()) {
+  // Anchored to performance.now() so changing the phone clock can't fake it
+  let timeAnchor = null; // { unixMs, perf }
+  let countdownTimer = null;
+  let refreshTimer = null;
+  let siteOpened = false;
+
+  function trueNowMs() {
+    if (!timeAnchor) return null;
+    return timeAnchor.unixMs + (performance.now() - timeAnchor.perf);
+  }
+
+  function beirutParts(ms) {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "numeric",
+      minute: "numeric",
+      second: "numeric",
+      hourCycle: "h23",
+    }).formatToParts(new Date(ms));
+
+    const get = (type) => Number(parts.find((p) => p.type === type)?.value || 0);
+    return {
+      year: get("year"),
+      month: get("month"),
+      day: get("day"),
+      hour: get("hour"),
+      minute: get("minute"),
+      second: get("second"),
+    };
+  }
+
+  function isReleaseDay() {
     if (cfg.forceOpen) return true;
+    const ms = trueNowMs();
+    if (ms == null) return false;
+    const p = beirutParts(ms);
     return (
-      date.getFullYear() === release.year &&
-      date.getMonth() + 1 === release.month &&
-      date.getDate() === release.day
+      p.year === release.year &&
+      p.month === release.month &&
+      p.day === release.day
     );
   }
 
-  function releaseStart(date = new Date()) {
-    return new Date(release.year, release.month - 1, release.day, 0, 0, 0, 0);
+  // Midnight 1 Aug 2026 in Beirut (summer = UTC+3)
+  function releaseStartMs() {
+    return Date.parse(
+      `${release.year}-${String(release.month).padStart(2, "0")}-${String(release.day).padStart(2, "0")}T00:00:00+03:00`
+    );
+  }
+
+  async function fetchBeirutUnixMs() {
+    const tryWorldTime = async () => {
+      const res = await fetch(
+        `https://worldtimeapi.org/api/timezone/${encodeURIComponent(timeZone)}`,
+        { cache: "no-store" }
+      );
+      if (!res.ok) throw new Error("worldtimeapi failed");
+      const data = await res.json();
+      if (typeof data.unixtime === "number") return data.unixtime * 1000;
+      if (data.datetime) return Date.parse(data.datetime);
+      throw new Error("worldtimeapi bad payload");
+    };
+
+    const tryTimeApi = async () => {
+      const res = await fetch(
+        `https://timeapi.io/api/Time/current/zone?timeZone=${encodeURIComponent(timeZone)}`,
+        { cache: "no-store" }
+      );
+      if (!res.ok) throw new Error("timeapi failed");
+      const data = await res.json();
+      if (data.dateTime) {
+        // dateTime is local Beirut wall time without offset — attach +03:00 in summer
+        const iso = String(data.dateTime);
+        const withOffset = iso.includes("+") || iso.endsWith("Z")
+          ? iso
+          : `${iso}+03:00`;
+        const parsed = Date.parse(withOffset);
+        if (!Number.isNaN(parsed)) return parsed;
+      }
+      if (data.year && data.month && data.day) {
+        return Date.parse(
+          `${data.year}-${String(data.month).padStart(2, "0")}-${String(data.day).padStart(2, "0")}T${String(data.hour).padStart(2, "0")}:${String(data.minute).padStart(2, "0")}:${String(data.seconds || 0).padStart(2, "0")}+03:00`
+        );
+      }
+      throw new Error("timeapi bad payload");
+    };
+
+    const errors = [];
+    for (const fn of [tryWorldTime, tryTimeApi]) {
+      try {
+        return await fn();
+      } catch (err) {
+        errors.push(err);
+      }
+    }
+    throw errors[errors.length - 1] || new Error("time fetch failed");
+  }
+
+  async function syncBeirutTime() {
+    const unixMs = await fetchBeirutUnixMs();
+    timeAnchor = { unixMs, perf: performance.now() };
+    return unixMs;
   }
 
   function updateCountdown() {
-    const now = new Date();
-    if (isReleaseDay(now)) {
+    if (isReleaseDay()) {
       openSite();
       return;
     }
 
-    let diff = releaseStart().getTime() - now.getTime();
+    const now = trueNowMs();
+    if (now == null) return;
+
+    let diff = releaseStartMs() - now;
     if (diff < 0) diff = 0;
 
     const secs = Math.floor(diff / 1000);
@@ -51,13 +151,11 @@
     set("cd-secs", s);
   }
 
-  let countdownTimer = null;
-  let siteOpened = false;
-
   function openSite() {
     if (siteOpened) return;
     siteOpened = true;
     if (countdownTimer) clearInterval(countdownTimer);
+    if (refreshTimer) clearInterval(refreshTimer);
     document.body.classList.remove("is-date-locked");
     waitEl?.classList.add("is-gone");
     setTimeout(() => {
@@ -69,12 +167,52 @@
     }
   }
 
-  if (!isReleaseDay()) {
-    updateCountdown();
-    countdownTimer = setInterval(updateCountdown, 1000);
-  } else {
-    openSite();
+  async function initDateLock() {
+    if (cfg.forceOpen) {
+      openSite();
+      return;
+    }
+
+    if (waitSub) {
+      waitSub.textContent = "Checking the real time in Beirut… stay online.";
+    }
+
+    try {
+      await syncBeirutTime();
+
+      if (isReleaseDay()) {
+        openSite();
+        return;
+      }
+
+      if (waitSub) {
+        waitSub.textContent =
+          "Come back on 1 August 2026 (Beirut time). Changing your phone date won’t work.";
+      }
+      if (waitStatus) waitStatus.hidden = true;
+      if (waitCountdown) waitCountdown.hidden = false;
+
+      updateCountdown();
+      countdownTimer = setInterval(updateCountdown, 1000);
+      // Re-sync every 2 minutes so the clock stays honest
+      refreshTimer = setInterval(() => {
+        syncBeirutTime().catch(() => {});
+      }, 120000);
+    } catch {
+      if (waitSub) {
+        waitSub.textContent =
+          "This surprise needs internet to check Beirut time.";
+      }
+      if (waitStatus) {
+        waitStatus.hidden = false;
+        waitStatus.textContent =
+          "Connect to Wi‑Fi or mobile data, then refresh the page.";
+      }
+      if (waitCountdown) waitCountdown.hidden = true;
+    }
   }
+
+  initDateLock();
 
   const nameEl = document.getElementById("gf-name");
   const fromEl = document.getElementById("from-name");

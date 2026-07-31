@@ -3,8 +3,9 @@ window.GF_DAY = {
   herName: "Lynn",
   yourName: "Joe",
 
-  // Site only opens on this local date (phone/computer clock)
+  // Site only opens on this date in Beirut (internet time — phone date changes won't work)
   releaseDate: { year: 2026, month: 8, day: 1 }, // 1 August 2026
+  timeZone: "Asia/Beirut",
   // Set true ONLY while testing — set false before she opens it
   forceOpen: false,
 

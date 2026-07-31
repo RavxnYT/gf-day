@@ -22,7 +22,7 @@
     <div class="aurora" aria-hidden="true"></div>
     <div class="vignette" aria-hidden="true"></div>
 
-    <!-- Opens only on 1 August 2026 (local time) -->
+    <!-- Opens only on 1 August 2026 (Beirut internet time) -->
     <div
       id="wait"
       class="wait"
@@ -36,27 +36,31 @@
         <p class="wait__text">
           This little surprise unlocks on
           <strong>Girlfriend's Day</strong> —
-          <span class="wait__date">1 August 2026</span>.
+          <span class="wait__date">1 August 2026</span>
+          <span class="wait__tz">(Beirut time)</span>.
         </p>
-        <p class="wait__sub">Come back when your phone says it’s that day.</p>
-        <div class="wait__countdown" id="wait-countdown" aria-live="polite">
+        <p class="wait__sub" id="wait-sub">
+          Checking the real time in Beirut… stay online.
+        </p>
+        <div class="wait__countdown" id="wait-countdown" aria-live="polite" hidden>
           <div class="wait__unit">
-            <span class="wait__num" id="cd-days">0</span>
+            <span class="wait__num" id="cd-days">–</span>
             <span class="wait__label">days</span>
           </div>
           <div class="wait__unit">
-            <span class="wait__num" id="cd-hours">0</span>
+            <span class="wait__num" id="cd-hours">–</span>
             <span class="wait__label">hours</span>
           </div>
           <div class="wait__unit">
-            <span class="wait__num" id="cd-mins">0</span>
+            <span class="wait__num" id="cd-mins">–</span>
             <span class="wait__label">mins</span>
           </div>
           <div class="wait__unit">
-            <span class="wait__num" id="cd-secs">0</span>
+            <span class="wait__num" id="cd-secs">–</span>
             <span class="wait__label">secs</span>
           </div>
         </div>
+        <p class="wait__status" id="wait-status" hidden></p>
         <p class="wait__from">— Joe</p>
       </div>
     </div>
