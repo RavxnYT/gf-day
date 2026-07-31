@@ -701,8 +701,13 @@
 
   // ── Secret naughty ticket ──────────────────────────
   const ticketCfg = cfg.secretTicket || {};
+  const secretPassword = normalizeText(ticketCfg.password || "comegetme");
   const secretBtn = document.getElementById("secret-ticket-btn");
   const ticketModal = document.getElementById("secret-ticket");
+  const secretPass = document.getElementById("secret-pass");
+  const secretPassForm = document.getElementById("secret-pass-form");
+  const secretPassInput = document.getElementById("secret-pass-input");
+  const secretPassError = document.getElementById("secret-pass-error");
   const ticketPerks = document.getElementById("ticket-perks");
 
   const ticketName = document.getElementById("ticket-name");
@@ -723,8 +728,34 @@
       .join("");
   }
 
+  function openSecretPass() {
+    if (!unlocked || !secretPass) return;
+    secretPass.hidden = false;
+    document.body.style.overflow = "hidden";
+    if (secretPassError) secretPassError.hidden = true;
+    secretPassForm?.classList.remove("is-wrong");
+    if (secretPassInput) secretPassInput.value = "";
+    requestAnimationFrame(() => {
+      secretPass.classList.add("is-open");
+      secretPass.scrollTop = 0;
+      secretPassInput?.focus({ preventScroll: true });
+    });
+  }
+
+  function closeSecretPass() {
+    if (!secretPass) return;
+    secretPass.classList.remove("is-open");
+    if (!ticketModal || ticketModal.hidden) {
+      document.body.style.overflow = "";
+    }
+    setTimeout(() => {
+      secretPass.hidden = true;
+    }, 350);
+  }
+
   function openTicket() {
     if (!unlocked || !ticketModal) return;
+    closeSecretPass();
     ticketModal.hidden = false;
     document.body.style.overflow = "hidden";
     requestAnimationFrame(() => {
@@ -744,11 +775,37 @@
     }, 400);
   }
 
-  secretBtn?.addEventListener("click", openTicket);
+  secretBtn?.addEventListener("click", openSecretPass);
+
+  secretPassForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const value = normalizeText(secretPassInput?.value || "");
+    if (value === secretPassword) {
+      if (secretPassError) secretPassError.hidden = true;
+      secretPassForm.classList.remove("is-wrong");
+      openTicket();
+    } else {
+      if (secretPassError) {
+        secretPassError.hidden = false;
+        secretPassError.classList.remove("is-shake");
+        void secretPassError.offsetWidth;
+        secretPassError.classList.add("is-shake");
+      }
+      secretPassForm.classList.remove("is-wrong");
+      void secretPassForm.offsetWidth;
+      secretPassForm.classList.add("is-wrong");
+      secretPassInput?.select();
+    }
+  });
+
+  document.getElementById("secret-pass-cancel")?.addEventListener("click", closeSecretPass);
+  document.getElementById("secret-pass-scrim")?.addEventListener("click", closeSecretPass);
   document.getElementById("ticket-close")?.addEventListener("click", closeTicket);
   document.getElementById("ticket-close-scrim")?.addEventListener("click", closeTicket);
 
   window.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && ticketModal && !ticketModal.hidden) closeTicket();
+    if (e.key !== "Escape") return;
+    if (ticketModal && !ticketModal.hidden) closeTicket();
+    else if (secretPass && !secretPass.hidden) closeSecretPass();
   });
 })();

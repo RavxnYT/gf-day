@@ -11,14 +11,15 @@ window.GF_DAY = {
     fillBlank: "everything",
   },
 
-  // Secret naughty ticket (tiny hidden button in the footer)
+  // Secret naughty ticket (tap ♥ in footer) — password is case-insensitive
   secretTicket: {
+    password: "comegetme",
     dateLabel: "August 3",
     title: "VIP Night Pass",
     subtitle: "Redeemable on Joe. No refunds.",
     perks: [
       "Unlimited access to Joe — hands, mouth, and zero self-control",
-      "Dress code: optional. Appetite: required.",
+      "Dress code: Not required.",
       "Valid one night only. Bring this smile… and nothing else if you want.",
     ],
     finePrint:

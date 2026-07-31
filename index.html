@@ -264,6 +264,49 @@
       </footer>
     </main>
 
+    <!-- Secret password gate -->
+    <div
+      id="secret-pass"
+      class="secret-pass"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="secret-pass-title"
+      hidden
+    >
+      <button
+        type="button"
+        class="secret-pass__scrim"
+        id="secret-pass-scrim"
+        aria-label="Close"
+      ></button>
+      <form class="secret-pass__panel" id="secret-pass-form" autocomplete="off">
+        <p class="secret-pass__kicker">Restricted</p>
+        <h2 id="secret-pass-title" class="secret-pass__title">
+          This one’s locked…
+        </h2>
+        <p class="secret-pass__hint">
+          Enter the secret word Joe whispered for August 3.
+        </p>
+        <input
+          id="secret-pass-input"
+          class="secret-pass__input"
+          type="password"
+          inputmode="text"
+          maxlength="40"
+          placeholder="Secret word…"
+          spellcheck="false"
+          required
+        />
+        <p class="secret-pass__error" id="secret-pass-error" hidden>
+          Nuh-uh. Ask Joe… or try again.
+        </p>
+        <button type="submit" class="secret-pass__submit">Unlock</button>
+        <button type="button" class="secret-pass__cancel" id="secret-pass-cancel">
+          Never mind
+        </button>
+      </form>
+    </div>
+
     <!-- Secret naughty ticket -->
     <div
       id="secret-ticket"
