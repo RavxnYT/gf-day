@@ -3,6 +3,14 @@ window.GF_DAY = {
   herName: "Lynn",
   yourName: "Joe",
 
+  // Unlock answers (after she opens the seal)
+  unlock: {
+    nickname: "bibi",
+    // IMPORTANT: set the real date Joe asked her (YYYY-MM-DD)
+    askDate: "2024-02-14",
+    fillBlank: "everything",
+  },
+
   letter: `I hope this finds you smiling. I made this little corner of the internet just for you, because “I love you” in a text never feels like enough.
 
 You make the quiet parts of my day feel warm. Your laugh, the way you look at me, the way you care — it all stays with me. On Girlfriend’s Day, I don’t just want to celebrate a date on the calendar. I want to celebrate you. The whole you.

@@ -182,34 +182,280 @@
     tickParticles();
   }
 
-  // ── Gate open ──────────────────────────────────────
+  // ── Gate open → quiz → story ───────────────────────
   const gate = document.getElementById("gate");
   const openBtn = document.getElementById("open-letter");
   const story = document.getElementById("story");
-  let opened = false;
+  const unlockEl = document.getElementById("unlock");
+  let sealOpened = false;
+  let unlocked = false;
 
-  function openStory() {
-    if (opened) return;
-    opened = true;
+  const unlockCfg = cfg.unlock || {};
+  const answers = {
+    nickname: normalizeText(unlockCfg.nickname || "bibi"),
+    askDate: String(unlockCfg.askDate || "2024-02-14"),
+    fillBlank: normalizeText(unlockCfg.fillBlank || "everything"),
+  };
+
+  function normalizeText(str) {
+    return String(str).trim().toLowerCase().replace(/\s+/g, " ");
+  }
+
+  function openSeal() {
+    if (sealOpened) return;
+    sealOpened = true;
     gate?.classList.add("is-opening");
 
     setTimeout(() => {
       gate?.classList.add("is-gone");
-      story?.classList.remove("is-locked");
-      story?.classList.add("is-open");
-      story?.setAttribute("aria-hidden", "false");
-      document.body.classList.add("is-unlocked");
-
-      if (!reducedMotion) burstParticles(40);
-
-      requestAnimationFrame(() => {
-        observeReveals();
-        startTypewriterWhenReady();
-      });
+      showUnlock();
+      if (!reducedMotion) burstParticles(18);
     }, reducedMotion ? 0 : 380);
   }
 
-  openBtn?.addEventListener("click", openStory);
+  function showUnlock() {
+    if (!unlockEl) return;
+    unlockEl.hidden = false;
+    requestAnimationFrame(() => unlockEl.classList.add("is-open"));
+    document.getElementById("q1-input")?.focus();
+  }
+
+  function revealStory() {
+    if (unlocked) return;
+    unlocked = true;
+    unlockEl?.classList.add("is-gone");
+    setTimeout(() => {
+      if (unlockEl) unlockEl.hidden = true;
+    }, 700);
+
+    story?.classList.remove("is-locked");
+    story?.classList.add("is-open");
+    story?.setAttribute("aria-hidden", "false");
+    document.body.classList.add("is-unlocked");
+
+    if (!reducedMotion) burstParticles(40);
+
+    requestAnimationFrame(() => {
+      observeReveals();
+      startTypewriterWhenReady();
+    });
+  }
+
+  openBtn?.addEventListener("click", openSeal);
+
+  // ── Unlock quiz steps ──────────────────────────────
+  let step = 0;
+  const forms = [
+    document.getElementById("q1-form"),
+    document.getElementById("q2-form"),
+    document.getElementById("q3-form"),
+  ];
+  const stepLabel = document.getElementById("unlock-step");
+  const dots = document.querySelectorAll(".unlock__dot");
+
+  function setStep(next) {
+    step = next;
+    forms.forEach((form, i) => {
+      if (!form) return;
+      const active = i === step;
+      form.hidden = !active;
+      form.classList.toggle("is-active", active);
+      form.classList.remove("is-wrong");
+    });
+    dots.forEach((dot, i) => {
+      dot.classList.toggle("is-active", i === step);
+      dot.classList.toggle("is-done", i < step);
+    });
+    if (stepLabel) stepLabel.textContent = `Question ${step + 1} of 3`;
+
+    if (step === 0) document.getElementById("q1-input")?.focus();
+    if (step === 2) document.getElementById("q3-input")?.focus();
+  }
+
+  function showError(id, form) {
+    const err = document.getElementById(id);
+    if (err) {
+      err.hidden = false;
+      err.classList.remove("is-shake");
+      void err.offsetWidth;
+      err.classList.add("is-shake");
+    }
+    form?.classList.remove("is-wrong");
+    void form?.offsetWidth;
+    form?.classList.add("is-wrong");
+  }
+
+  function hideError(id, form) {
+    const err = document.getElementById(id);
+    if (err) err.hidden = true;
+    form?.classList.remove("is-wrong");
+  }
+
+  document.getElementById("q1-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = document.getElementById("q1-input");
+    const value = normalizeText(input?.value || "");
+    if (value === answers.nickname) {
+      hideError("q1-error", forms[0]);
+      if (!reducedMotion) burstParticles(12);
+      setStep(1);
+    } else {
+      showError("q1-error", forms[0]);
+      input?.select();
+    }
+  });
+
+  document.getElementById("q2-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const value = document.getElementById("q2-input")?.value || "";
+    if (value === answers.askDate) {
+      hideError("q2-error", forms[1]);
+      if (!reducedMotion) burstParticles(12);
+      setStep(2);
+    } else {
+      showError("q2-error", forms[1]);
+    }
+  });
+
+  document.getElementById("q3-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = document.getElementById("q3-input");
+    const value = normalizeText(input?.value || "");
+    if (value === answers.fillBlank) {
+      hideError("q3-error", forms[2]);
+      revealStory();
+    } else {
+      showError("q3-error", forms[2]);
+      input?.select();
+    }
+  });
+
+  // ── Professional calendar ──────────────────────────
+  const calGrid = document.getElementById("cal-grid");
+  const calMonth = document.getElementById("cal-month");
+  const calSelected = document.getElementById("cal-selected");
+  const q2Input = document.getElementById("q2-input");
+  const q2Submit = document.getElementById("q2-submit");
+
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ];
+
+  // Start calendar near the correct answer month
+  const answerParts = answers.askDate.split("-").map(Number);
+  let viewYear = answerParts[0] || new Date().getFullYear();
+  let viewMonth = (answerParts[1] || 1) - 1;
+  let selectedISO = "";
+
+  const today = new Date();
+  const todayISO = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+
+  function pad(n) {
+    return String(n).padStart(2, "0");
+  }
+
+  function toISO(y, m, d) {
+    return `${y}-${pad(m + 1)}-${pad(d)}`;
+  }
+
+  function formatPretty(iso) {
+    const [y, m, d] = iso.split("-").map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString(undefined, {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
+
+  function renderCalendar() {
+    if (!calGrid || !calMonth) return;
+    calMonth.textContent = `${monthNames[viewMonth]} ${viewYear}`;
+    calGrid.innerHTML = "";
+
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const prevDays = new Date(viewYear, viewMonth, 0).getDate();
+
+    for (let i = 0; i < 42; i++) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "cal__day";
+
+      let dayNum;
+      let inMonth = true;
+      let y = viewYear;
+      let m = viewMonth;
+
+      if (i < firstDay) {
+        dayNum = prevDays - firstDay + 1 + i;
+        inMonth = false;
+        m = viewMonth - 1;
+        if (m < 0) {
+          m = 11;
+          y -= 1;
+        }
+      } else if (i >= firstDay + daysInMonth) {
+        dayNum = i - (firstDay + daysInMonth) + 1;
+        inMonth = false;
+        m = viewMonth + 1;
+        if (m > 11) {
+          m = 0;
+          y += 1;
+        }
+      } else {
+        dayNum = i - firstDay + 1;
+      }
+
+      const iso = toISO(y, m, dayNum);
+      btn.textContent = String(dayNum);
+      btn.dataset.date = iso;
+
+      if (!inMonth) btn.disabled = true;
+      if (iso === todayISO && inMonth) btn.classList.add("is-today");
+      if (iso === selectedISO) btn.classList.add("is-selected");
+
+      if (inMonth) {
+        btn.addEventListener("click", () => selectDate(iso));
+      }
+
+      calGrid.appendChild(btn);
+    }
+  }
+
+  function selectDate(iso) {
+    selectedISO = iso;
+    if (q2Input) q2Input.value = iso;
+    if (q2Submit) q2Submit.disabled = false;
+    if (calSelected) {
+      calSelected.textContent = formatPretty(iso);
+      calSelected.classList.add("has-value");
+    }
+    hideError("q2-error", forms[1]);
+    renderCalendar();
+  }
+
+  document.getElementById("cal-prev")?.addEventListener("click", () => {
+    viewMonth -= 1;
+    if (viewMonth < 0) {
+      viewMonth = 11;
+      viewYear -= 1;
+    }
+    renderCalendar();
+  });
+
+  document.getElementById("cal-next")?.addEventListener("click", () => {
+    viewMonth += 1;
+    if (viewMonth > 11) {
+      viewMonth = 0;
+      viewYear += 1;
+    }
+    renderCalendar();
+  });
+
+  renderCalendar();
 
   // ── Scroll reveals ─────────────────────────────────
   let observer;
@@ -428,7 +674,7 @@
     window.addEventListener(
       "pointermove",
       (e) => {
-        if (!opened) return;
+        if (!unlocked) return;
         const now = performance.now();
         if (now - lastTrail < 55) return;
         lastTrail = now;

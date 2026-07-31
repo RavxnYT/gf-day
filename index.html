@@ -44,6 +44,95 @@
       </button>
     </div>
 
+    <!-- Secret questions unlock -->
+    <div
+      id="unlock"
+      class="unlock"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="unlock-title"
+      hidden
+    >
+      <div class="unlock__panel">
+        <p class="unlock__kicker">Almost there</p>
+        <h2 id="unlock-title" class="unlock__title">Answer these to open your letter</h2>
+        <p class="unlock__step" id="unlock-step">Question 1 of 3</p>
+
+        <div class="unlock__progress" aria-hidden="true">
+          <span class="unlock__dot is-active" data-dot="0"></span>
+          <span class="unlock__dot" data-dot="1"></span>
+          <span class="unlock__dot" data-dot="2"></span>
+        </div>
+
+        <!-- Q1 nickname -->
+        <form class="unlock__form is-active" id="q1-form" data-step="0" autocomplete="off">
+          <label class="unlock__question" for="q1-input">
+            What loving nickname does Joe call you?
+          </label>
+          <input
+            id="q1-input"
+            class="unlock__input"
+            type="text"
+            inputmode="text"
+            maxlength="40"
+            placeholder="Type your answer…"
+            spellcheck="false"
+            required
+          />
+          <p class="unlock__error" id="q1-error" hidden>Not quite — try again, love.</p>
+          <button type="submit" class="unlock__submit">Continue</button>
+        </form>
+
+        <!-- Q2 calendar -->
+        <form class="unlock__form" id="q2-form" data-step="1" autocomplete="off" hidden>
+          <p class="unlock__question" id="q2-label">
+            On which day did Joe ask you to be his girlfriend?
+          </p>
+          <div class="cal" id="calendar" role="group" aria-labelledby="q2-label">
+            <div class="cal__header">
+              <button type="button" class="cal__nav" id="cal-prev" aria-label="Previous month">
+                ‹
+              </button>
+              <p class="cal__month" id="cal-month">February 2024</p>
+              <button type="button" class="cal__nav" id="cal-next" aria-label="Next month">
+                ›
+              </button>
+            </div>
+            <div class="cal__weekdays" aria-hidden="true">
+              <span>Su</span><span>Mo</span><span>Tu</span><span>We</span>
+              <span>Th</span><span>Fr</span><span>Sa</span>
+            </div>
+            <div class="cal__grid" id="cal-grid"></div>
+            <p class="cal__selected" id="cal-selected">Select a date</p>
+          </div>
+          <input type="hidden" id="q2-input" value="" />
+          <p class="unlock__error" id="q2-error" hidden>That’s not the day — pick again.</p>
+          <button type="submit" class="unlock__submit" id="q2-submit" disabled>Continue</button>
+        </form>
+
+        <!-- Q3 fill blank -->
+        <form class="unlock__form" id="q3-form" data-step="2" autocomplete="off" hidden>
+          <label class="unlock__question" for="q3-input">
+            Finish this: <em>You are my ______.</em>
+          </label>
+          <div class="unlock__blank">
+            <span class="unlock__blank-prefix">You are my</span>
+            <input
+              id="q3-input"
+              class="unlock__input unlock__input--blank"
+              type="text"
+              maxlength="40"
+              placeholder="…"
+              spellcheck="false"
+              required
+            />
+          </div>
+          <p class="unlock__error" id="q3-error" hidden>So close — think bigger.</p>
+          <button type="submit" class="unlock__submit">Open my letter</button>
+        </form>
+      </div>
+    </div>
+
     <main id="story" class="story is-locked" aria-hidden="true">
       <!-- Hero -->
       <section class="hero">
