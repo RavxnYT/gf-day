@@ -7,7 +7,7 @@
   const moments = cfg.moments || [];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // ── Date lock: 1 August 2026, Asia/Beirut (internet time) ──
+  // ── Date lock: 1 August 2026, Asia/Beirut (internet unix time) ──
   const release = cfg.releaseDate || { year: 2026, month: 8, day: 1 };
   const timeZone = cfg.timeZone || "Asia/Beirut";
   const waitEl = document.getElementById("wait");
@@ -22,50 +22,70 @@
   let refreshTimer = null;
   let siteOpened = false;
 
+  // Beirut summer offset (EEST). Aug 1 is always in this window for Lebanon.
+  function releaseStartMs() {
+    return Date.parse(
+      `${release.year}-${String(release.month).padStart(2, "0")}-${String(release.day).padStart(2, "0")}T00:00:00+03:00`
+    );
+  }
+
+  function releaseEndMs() {
+    return releaseStartMs() + 24 * 60 * 60 * 1000;
+  }
+
   function trueNowMs() {
     if (!timeAnchor) return null;
-    return timeAnchor.unixMs + (performance.now() - timeAnchor.perf);
+    const ms = timeAnchor.unixMs + (performance.now() - timeAnchor.perf);
+    return Number.isFinite(ms) ? ms : null;
+  }
+
+  function isSaneUnix(ms) {
+    if (!Number.isFinite(ms)) return false;
+    // Must be a real 2026 timestamp — rejects NaN / epoch / garbage parses (Android bug)
+    const min = Date.parse("2026-06-01T00:00:00+03:00");
+    const max = Date.parse("2026-12-31T23:59:59+03:00");
+    return ms >= min && ms <= max;
   }
 
   function beirutParts(ms) {
-    const parts = new Intl.DateTimeFormat("en-US", {
-      timeZone,
-      year: "numeric",
-      month: "numeric",
-      day: "numeric",
-      hour: "numeric",
-      minute: "numeric",
-      second: "numeric",
-      hourCycle: "h23",
-    }).formatToParts(new Date(ms));
+    try {
+      const parts = new Intl.DateTimeFormat("en-GB", {
+        timeZone,
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+      }).formatToParts(new Date(ms));
 
-    const get = (type) => Number(parts.find((p) => p.type === type)?.value || 0);
-    return {
-      year: get("year"),
-      month: get("month"),
-      day: get("day"),
-      hour: get("hour"),
-      minute: get("minute"),
-      second: get("second"),
-    };
+      const get = (type) => {
+        const raw = parts.find((p) => p.type === type)?.value;
+        const n = Number(raw);
+        return Number.isFinite(n) ? n : null;
+      };
+      return { year: get("year"), month: get("month"), day: get("day") };
+    } catch {
+      return { year: null, month: null, day: null };
+    }
   }
 
+  // Strict: only open inside the Beirut Aug 1 unix window (works on Android + iOS)
   function isReleaseDay() {
-    if (cfg.forceOpen) return true;
+    if (cfg.forceOpen === true) return true;
     const ms = trueNowMs();
-    if (ms == null) return false;
+    if (ms == null || !isSaneUnix(ms)) return false;
+
+    // Primary gate — absolute Beirut midnight window (no Intl needed)
+    if (ms < releaseStartMs() || ms >= releaseEndMs()) return false;
+
+    // Secondary check via timezone formatter when available
     const p = beirutParts(ms);
+    if (p.year == null || p.month == null || p.day == null) {
+      // Intl failed — still allow if unix window matched
+      return true;
+    }
     return (
       p.year === release.year &&
       p.month === release.month &&
       p.day === release.day
-    );
-  }
-
-  // Midnight 1 Aug 2026 in Beirut (summer = UTC+3)
-  function releaseStartMs() {
-    return Date.parse(
-      `${release.year}-${String(release.month).padStart(2, "0")}-${String(release.day).padStart(2, "0")}T00:00:00+03:00`
     );
   }
 
@@ -77,6 +97,15 @@
     );
   }
 
+  function fromBeirutWallClock(y, m, d, h, min, s) {
+    // Interpret wall clock as Beirut GMT+3 (safe for Aug / summer)
+    const ms = Date.parse(
+      `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}T${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}:${String(s).padStart(2, "0")}+03:00`
+    );
+    if (!isSaneUnix(ms)) throw new Error("insane wall clock");
+    return ms;
+  }
+
   async function fetchBeirutUnixMs() {
     const tryWorldTime = async () => {
       const res = await fetchWithTimeout(
@@ -84,8 +113,18 @@
       );
       if (!res.ok) throw new Error("worldtimeapi failed");
       const data = await res.json();
-      if (typeof data.unixtime === "number") return data.unixtime * 1000;
-      if (data.datetime) return Date.parse(data.datetime);
+      if (typeof data.unixtime === "number" && isSaneUnix(data.unixtime * 1000)) {
+        return data.unixtime * 1000;
+      }
+      // Fallback: API's own calendar fields (Beirut) + time fields
+      if (data.year && data.month && data.day) {
+        const datetime = String(data.datetime || "");
+        const timeBit = datetime.match(/T(\d{2}):(\d{2}):(\d{2})/);
+        const hh = timeBit ? Number(timeBit[1]) : 12;
+        const mm = timeBit ? Number(timeBit[2]) : 0;
+        const ss = timeBit ? Number(timeBit[3]) : 0;
+        return fromBeirutWallClock(data.year, data.month, data.day, hh, mm, ss);
+      }
       throw new Error("worldtimeapi bad payload");
     };
 
@@ -95,36 +134,38 @@
       );
       if (!res.ok) throw new Error("timeapi failed");
       const data = await res.json();
-      if (data.dateTime) {
-        const iso = String(data.dateTime);
-        const withOffset =
-          iso.includes("+") || iso.endsWith("Z") ? iso : `${iso}+03:00`;
-        const parsed = Date.parse(withOffset);
-        if (!Number.isNaN(parsed)) return parsed;
-      }
-      if (data.year && data.month && data.day) {
-        return Date.parse(
-          `${data.year}-${String(data.month).padStart(2, "0")}-${String(data.day).padStart(2, "0")}T${String(data.hour).padStart(2, "0")}:${String(data.minute).padStart(2, "0")}:${String(data.seconds || 0).padStart(2, "0")}+03:00`
+      // Prefer numeric fields — avoids Android Date.parse quirks on long fractions
+      if (data.year && data.month && data.day != null) {
+        return fromBeirutWallClock(
+          Number(data.year),
+          Number(data.month),
+          Number(data.day),
+          Number(data.hour || 0),
+          Number(data.minute || 0),
+          Number(data.seconds != null ? data.seconds : data.second || 0)
         );
       }
       throw new Error("timeapi bad payload");
     };
 
-    // UTC internet clock, then treat as absolute unix (timezone checked via Intl)
     const tryWorldTimeUtc = async () => {
       const res = await fetchWithTimeout(
         "https://worldtimeapi.org/api/timezone/Etc/UTC"
       );
       if (!res.ok) throw new Error("worldtime utc failed");
       const data = await res.json();
-      if (typeof data.unixtime === "number") return data.unixtime * 1000;
+      if (typeof data.unixtime === "number" && isSaneUnix(data.unixtime * 1000)) {
+        return data.unixtime * 1000;
+      }
       throw new Error("worldtime utc bad payload");
     };
 
     const errors = [];
     for (const fn of [tryWorldTime, tryTimeApi, tryWorldTimeUtc]) {
       try {
-        return await fn();
+        const ms = await fn();
+        if (!isSaneUnix(ms)) throw new Error("rejected insane timestamp");
+        return ms;
       } catch (err) {
         errors.push(err);
       }
@@ -139,8 +180,12 @@
   }
 
   function updateCountdown() {
-    if (isReleaseDay()) {
-      openSite();
+    try {
+      if (isReleaseDay()) {
+        openSite();
+        return;
+      }
+    } catch {
       return;
     }
 
@@ -168,6 +213,9 @@
 
   function openSite() {
     if (siteOpened) return;
+    // Final hard check — never open early (Android was skipping the wait)
+    if (cfg.forceOpen !== true && !isReleaseDay()) return;
+
     siteOpened = true;
     if (countdownTimer) clearInterval(countdownTimer);
     if (refreshTimer) clearInterval(refreshTimer);
@@ -183,9 +231,20 @@
   }
 
   async function initDateLock() {
-    if (cfg.forceOpen) {
+    // Keep gate hidden until we know it's release day
+    if (gateEl) {
+      gateEl.hidden = true;
+      gateEl.classList.add("is-held");
+    }
+
+    if (cfg.forceOpen === true) {
       openSite();
       return;
+    }
+
+    if (waitEl) {
+      waitEl.hidden = false;
+      waitEl.classList.remove("is-gone");
     }
 
     if (waitSub) {
@@ -209,11 +268,15 @@
 
       updateCountdown();
       countdownTimer = setInterval(updateCountdown, 1000);
-      // Re-sync every 2 minutes so the clock stays honest
       refreshTimer = setInterval(() => {
-        syncBeirutTime().catch(() => {});
+        syncBeirutTime()
+          .then(() => {
+            if (isReleaseDay()) openSite();
+          })
+          .catch(() => {});
       }, 120000);
     } catch {
+      // Stay locked — never open when time can't be verified
       if (waitSub) {
         waitSub.textContent =
           "This surprise needs internet to check Beirut time.";
@@ -224,6 +287,10 @@
           "Connect to Wi‑Fi or mobile data, then refresh the page.";
       }
       if (waitCountdown) waitCountdown.hidden = true;
+      if (gateEl) {
+        gateEl.hidden = true;
+        gateEl.classList.add("is-held");
+      }
     }
   }
 
