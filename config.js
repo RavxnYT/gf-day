@@ -11,6 +11,20 @@ window.GF_DAY = {
     fillBlank: "everything",
   },
 
+  // Secret naughty ticket (tiny hidden button in the footer)
+  secretTicket: {
+    dateLabel: "August 3",
+    title: "VIP Night Pass",
+    subtitle: "Redeemable on Joe. No refunds.",
+    perks: [
+      "Unlimited access to Joe — hands, mouth, and zero self-control",
+      "Dress code: optional. Appetite: required.",
+      "Valid one night only. Bring this smile… and nothing else if you want.",
+    ],
+    finePrint:
+      "By finding this ticket, Lynn agrees Joe is hers to ruin on August 3. No rain checks.",
+  },
+
   letter: `I hope this finds you smiling. I made this little corner of the internet just for you, because “I love you” in a text never feels like enough.
 
 You make the quiet parts of my day feel warm. Your laugh, the way you look at me, the way you care — it all stays with me. On Girlfriend’s Day, I don’t just want to celebrate a date on the calendar. I want to celebrate you. The whole you.

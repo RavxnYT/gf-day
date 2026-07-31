@@ -216,14 +216,19 @@
   function showUnlock() {
     if (!unlockEl) return;
     unlockEl.hidden = false;
-    requestAnimationFrame(() => unlockEl.classList.add("is-open"));
-    document.getElementById("q1-input")?.focus();
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(() => {
+      unlockEl.classList.add("is-open");
+      unlockEl.scrollTop = 0;
+    });
+    document.getElementById("q1-input")?.focus({ preventScroll: true });
   }
 
   function revealStory() {
     if (unlocked) return;
     unlocked = true;
     unlockEl?.classList.add("is-gone");
+    document.body.style.overflow = "";
     setTimeout(() => {
       if (unlockEl) unlockEl.hidden = true;
     }, 700);
@@ -268,8 +273,10 @@
     });
     if (stepLabel) stepLabel.textContent = `Question ${step + 1} of 3`;
 
-    if (step === 0) document.getElementById("q1-input")?.focus();
-    if (step === 2) document.getElementById("q3-input")?.focus();
+    if (unlockEl) unlockEl.scrollTop = 0;
+
+    if (step === 0) document.getElementById("q1-input")?.focus({ preventScroll: true });
+    if (step === 2) document.getElementById("q3-input")?.focus({ preventScroll: true });
   }
 
   function showError(id, form) {
@@ -691,4 +698,57 @@
       { passive: true }
     );
   }
+
+  // ── Secret naughty ticket ──────────────────────────
+  const ticketCfg = cfg.secretTicket || {};
+  const secretBtn = document.getElementById("secret-ticket-btn");
+  const ticketModal = document.getElementById("secret-ticket");
+  const ticketPerks = document.getElementById("ticket-perks");
+
+  const ticketName = document.getElementById("ticket-name");
+  const ticketDate = document.getElementById("ticket-date");
+  const ticketTitle = document.getElementById("ticket-title");
+  const ticketSub = document.getElementById("ticket-sub");
+  const ticketFine = document.getElementById("ticket-fine");
+
+  if (ticketName) ticketName.textContent = herName;
+  if (ticketDate) ticketDate.textContent = ticketCfg.dateLabel || "August 3";
+  if (ticketTitle) ticketTitle.textContent = ticketCfg.title || "VIP Night Pass";
+  if (ticketSub) ticketSub.textContent = ticketCfg.subtitle || "";
+  if (ticketFine) ticketFine.textContent = ticketCfg.finePrint || "";
+
+  if (ticketPerks && Array.isArray(ticketCfg.perks)) {
+    ticketPerks.innerHTML = ticketCfg.perks
+      .map((p) => `<li>${escapeHtml(p)}</li>`)
+      .join("");
+  }
+
+  function openTicket() {
+    if (!unlocked || !ticketModal) return;
+    ticketModal.hidden = false;
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(() => {
+      ticketModal.classList.add("is-open");
+      ticketModal.scrollTop = 0;
+    });
+    document.getElementById("ticket-close")?.focus({ preventScroll: true });
+    if (!reducedMotion) burstParticles(30);
+  }
+
+  function closeTicket() {
+    if (!ticketModal) return;
+    ticketModal.classList.remove("is-open");
+    document.body.style.overflow = "";
+    setTimeout(() => {
+      ticketModal.hidden = true;
+    }, 400);
+  }
+
+  secretBtn?.addEventListener("click", openTicket);
+  document.getElementById("ticket-close")?.addEventListener("click", closeTicket);
+  document.getElementById("ticket-close-scrim")?.addEventListener("click", closeTicket);
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && ticketModal && !ticketModal.hidden) closeTicket();
+  });
 })();

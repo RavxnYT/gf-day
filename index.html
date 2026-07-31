@@ -250,8 +250,53 @@
         <p class="footer__line">
           made with the love Joe feels towards lynn every single day
         </p>
+        <!-- Secret: almost invisible — look near the bottom -->
+        <button
+          type="button"
+          id="secret-ticket-btn"
+          class="secret-btn"
+          aria-label="Hmm… what’s this?"
+          title=""
+        >
+          <span class="secret-btn__stub" aria-hidden="true"></span>
+        </button>
       </footer>
     </main>
+
+    <!-- Secret naughty ticket -->
+    <div
+      id="secret-ticket"
+      class="ticket-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="ticket-title"
+      hidden
+    >
+      <button type="button" class="ticket-modal__scrim" id="ticket-close-scrim" aria-label="Close"></button>
+      <div class="ticket" id="ticket-card">
+        <p class="ticket__found">You found a secret ticket</p>
+        <div class="ticket__stub">
+          <div class="ticket__side">
+            <p class="ticket__admit">Admit one</p>
+            <p class="ticket__name" id="ticket-name">Lynn</p>
+            <p class="ticket__date" id="ticket-date">August 3</p>
+          </div>
+          <div class="ticket__perforation" aria-hidden="true"></div>
+          <div class="ticket__main">
+            <p class="ticket__kicker">Classified · 18+</p>
+            <h2 class="ticket__title" id="ticket-title">VIP Night Pass</h2>
+            <p class="ticket__sub" id="ticket-sub">Redeemable on Joe. No refunds.</p>
+            <ul class="ticket__perks" id="ticket-perks"></ul>
+            <p class="ticket__fine" id="ticket-fine"></p>
+            <div class="ticket__barcode" aria-hidden="true"></div>
+            <p class="ticket__code">JOE × LYNN · AUG 03</p>
+          </div>
+        </div>
+        <button type="button" id="ticket-close" class="ticket__close">
+          Hide this before someone sees…
+        </button>
+      </div>
+    </div>
 
     <div id="burst-layer" class="burst-layer" aria-hidden="true"></div>
     <div id="cursor-hearts" class="cursor-hearts" aria-hidden="true"></div>
