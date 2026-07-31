@@ -57,7 +57,7 @@ Happy Girlfriend’s Day, Lynn. You are, and always will be, my favorite story.`
       text: "I knew you were going to matter more than I was ready for.",
     },
     {
-      title: "Every ordinary Tuesday",
+      title: "Every ordinary Monday",
       text: "Still somehow feels special when you’re in it.",
     },
     {
@@ -66,7 +66,7 @@ Happy Girlfriend’s Day, Lynn. You are, and always will be, my favorite story.`
     },
     {
       title: "Right now",
-      text: "I’m grateful I get to love you out loud.",
+      text: "I’m grateful I get to love you every single second.",
     },
   ],
 };
