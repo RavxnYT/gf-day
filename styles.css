@@ -26,6 +26,7 @@ html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  overflow-x: clip;
 }
 
 body {
@@ -39,10 +40,11 @@ body {
     radial-gradient(70% 50% at 50% 100%, #ffd0e2 0%, transparent 55%),
     linear-gradient(168deg, #fff7fa 0%, #ffe4ef 45%, #fff0f5 100%);
   background-attachment: fixed;
-  overflow-x: hidden;
+  overflow-x: clip; /* clip avoids Safari scroll “cut” bugs from overflow:hidden */
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: rgba(194, 24, 91, 0.12);
+  overflow-anchor: auto;
 }
 
 body.is-scroll-locked {
@@ -1179,6 +1181,7 @@ button {
 /* ── Letter ───────────────────────────────────────── */
 .letter {
   padding: 2rem 0 5rem;
+  overflow-anchor: none;
 }
 
 .letter__paper {
@@ -1258,7 +1261,9 @@ button {
   font-weight: 300;
   color: var(--ink-soft);
   white-space: pre-wrap;
-  min-height: 8rem;
+  /* Reserve space so typewriter growth doesn't jump scroll below */
+  min-height: clamp(16rem, 52vw, 22rem);
+  overflow-anchor: none;
 }
 
 .letter__body.is-waiting::before {
@@ -1337,6 +1342,7 @@ button {
 
 .reasons {
   padding: 2rem 0 5rem;
+  overflow-anchor: none;
 }
 
 .reasons__list {
@@ -1352,26 +1358,31 @@ button {
   grid-template-columns: auto 1fr auto;
   gap: 1rem;
   align-items: center;
-  padding: 1.25rem 0.25rem;
+  padding: 1.25rem 0.35rem;
   border-bottom: 1px solid rgba(110, 24, 54, 0.1);
   opacity: 0;
-  transform: translateX(-28px);
+  transform: translate3d(0, 12px, 0); /* small Y only — no width reflow */
   transition:
-    opacity 0.75s var(--ease-out),
-    transform 0.75s var(--ease-out),
-    background 0.3s ease,
-    padding 0.3s ease;
+    opacity 0.65s var(--ease-out),
+    transform 0.65s var(--ease-out),
+    background 0.3s ease;
+  overflow-anchor: none;
 }
 
 .reasons__item.is-visible {
   opacity: 1;
-  transform: translateX(0);
+  transform: translate3d(0, 0, 0);
 }
 
-.reasons__item:hover {
-  background: rgba(255, 255, 255, 0.35);
-  padding-left: 0.65rem;
-  padding-right: 0.65rem;
+@media (hover: hover) and (pointer: fine) {
+  .reasons__item:hover {
+    background: rgba(255, 255, 255, 0.35);
+  }
+
+  .reasons__item:hover .reasons__heart {
+    transform: scale(1.35);
+    opacity: 1;
+  }
 }
 
 .reasons__item::before {
@@ -1396,14 +1407,10 @@ button {
   transition: transform 0.35s var(--ease-spring), opacity 0.3s ease;
 }
 
-.reasons__item:hover .reasons__heart {
-  transform: scale(1.35);
-  opacity: 1;
-}
-
 /* ── Moments timeline ─────────────────────────────── */
 .moments {
   padding: 2rem 0 5rem;
+  overflow-anchor: none;
 }
 
 .moments__rail {
@@ -2400,6 +2407,12 @@ button {
     inset: -10%;
   }
 
+  .letter__paper {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: rgba(255, 252, 253, 0.94);
+  }
+
   .cal__day {
     min-height: 40px;
   }
@@ -2413,6 +2426,7 @@ button {
   .ticket__close {
     min-height: 44px;
   }
+
 }
 
 /* iPhone 12 Pro Max width band (~428css px) */
