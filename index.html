@@ -17,13 +17,52 @@
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body class="is-date-locked">
     <canvas id="hearts-canvas" aria-hidden="true"></canvas>
     <div class="aurora" aria-hidden="true"></div>
     <div class="vignette" aria-hidden="true"></div>
 
+    <!-- Opens only on 1 August 2026 (local time) -->
+    <div
+      id="wait"
+      class="wait"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="wait-title"
+    >
+      <div class="wait__panel">
+        <p class="wait__kicker">Not yet…</p>
+        <h1 id="wait-title" class="wait__title">For Lynn</h1>
+        <p class="wait__text">
+          This little surprise unlocks on
+          <strong>Girlfriend's Day</strong> —
+          <span class="wait__date">1 August 2026</span>.
+        </p>
+        <p class="wait__sub">Come back when your phone says it’s that day.</p>
+        <div class="wait__countdown" id="wait-countdown" aria-live="polite">
+          <div class="wait__unit">
+            <span class="wait__num" id="cd-days">0</span>
+            <span class="wait__label">days</span>
+          </div>
+          <div class="wait__unit">
+            <span class="wait__num" id="cd-hours">0</span>
+            <span class="wait__label">hours</span>
+          </div>
+          <div class="wait__unit">
+            <span class="wait__num" id="cd-mins">0</span>
+            <span class="wait__label">mins</span>
+          </div>
+          <div class="wait__unit">
+            <span class="wait__num" id="cd-secs">0</span>
+            <span class="wait__label">secs</span>
+          </div>
+        </div>
+        <p class="wait__from">— Joe</p>
+      </div>
+    </div>
+
     <!-- Opening gate -->
-    <div id="gate" class="gate" role="dialog" aria-modal="true" aria-label="Open your surprise">
+    <div id="gate" class="gate is-held" role="dialog" aria-modal="true" aria-label="Open your surprise" hidden>
       <div class="gate__orbit" aria-hidden="true"></div>
       <button type="button" id="open-letter" class="gate__btn">
         <span class="envelope" aria-hidden="true">

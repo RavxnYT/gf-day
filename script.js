@@ -7,6 +7,75 @@
   const moments = cfg.moments || [];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // ── Date lock: only 1 August 2026 (local device time) ──
+  const release = cfg.releaseDate || { year: 2026, month: 8, day: 1 };
+  const waitEl = document.getElementById("wait");
+  const gateEl = document.getElementById("gate");
+
+  function isReleaseDay(date = new Date()) {
+    if (cfg.forceOpen) return true;
+    return (
+      date.getFullYear() === release.year &&
+      date.getMonth() + 1 === release.month &&
+      date.getDate() === release.day
+    );
+  }
+
+  function releaseStart(date = new Date()) {
+    return new Date(release.year, release.month - 1, release.day, 0, 0, 0, 0);
+  }
+
+  function updateCountdown() {
+    const now = new Date();
+    if (isReleaseDay(now)) {
+      openSite();
+      return;
+    }
+
+    let diff = releaseStart().getTime() - now.getTime();
+    if (diff < 0) diff = 0;
+
+    const secs = Math.floor(diff / 1000);
+    const days = Math.floor(secs / 86400);
+    const hours = Math.floor((secs % 86400) / 3600);
+    const mins = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+
+    const set = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = String(val);
+    };
+    set("cd-days", days);
+    set("cd-hours", hours);
+    set("cd-mins", mins);
+    set("cd-secs", s);
+  }
+
+  let countdownTimer = null;
+  let siteOpened = false;
+
+  function openSite() {
+    if (siteOpened) return;
+    siteOpened = true;
+    if (countdownTimer) clearInterval(countdownTimer);
+    document.body.classList.remove("is-date-locked");
+    waitEl?.classList.add("is-gone");
+    setTimeout(() => {
+      if (waitEl) waitEl.hidden = true;
+    }, 800);
+    if (gateEl) {
+      gateEl.hidden = false;
+      gateEl.classList.remove("is-held");
+    }
+  }
+
+  if (!isReleaseDay()) {
+    updateCountdown();
+    countdownTimer = setInterval(updateCountdown, 1000);
+  } else {
+    openSite();
+  }
+
   const nameEl = document.getElementById("gf-name");
   const fromEl = document.getElementById("from-name");
   if (nameEl) nameEl.textContent = herName;
@@ -183,7 +252,6 @@
   }
 
   // ── Gate open → quiz → story ───────────────────────
-  const gate = document.getElementById("gate");
   const openBtn = document.getElementById("open-letter");
   const story = document.getElementById("story");
   const unlockEl = document.getElementById("unlock");
@@ -202,12 +270,12 @@
   }
 
   function openSeal() {
-    if (sealOpened) return;
+    if (sealOpened || !siteOpened) return;
     sealOpened = true;
-    gate?.classList.add("is-opening");
+    gateEl?.classList.add("is-opening");
 
     setTimeout(() => {
-      gate?.classList.add("is-gone");
+      gateEl?.classList.add("is-gone");
       showUnlock();
       if (!reducedMotion) burstParticles(18);
     }, reducedMotion ? 0 : 380);
