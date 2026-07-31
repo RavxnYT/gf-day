@@ -6,8 +6,8 @@ window.GF_DAY = {
   // Unlock answers (after she opens the seal)
   unlock: {
     nickname: "bibi",
-    // IMPORTANT: set the real date Joe asked her (YYYY-MM-DD)
-    askDate: "2024-02-14",
+    // Date Joe asked her to be his girlfriend (YYYY-MM-DD)
+    askDate: "2026-03-17",
     fillBlank: "everything",
   },
 
