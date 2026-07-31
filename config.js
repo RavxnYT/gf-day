@@ -7,7 +7,7 @@ window.GF_DAY = {
   releaseDate: { year: 2026, month: 8, day: 1 }, // 1 August 2026
   timeZone: "Asia/Beirut",
   // Set true ONLY while testing — set false before she opens it
-  forceOpen: false,
+  forceOpen: true,
 
   // Unlock answers (after she opens the seal)
   unlock: {
