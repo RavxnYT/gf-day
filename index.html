@@ -246,20 +246,22 @@
       </section>
 
       <footer class="footer">
-        <p class="footer__script">Joe ♥ Lynn</p>
+        <p class="footer__script">
+          Joe
+          <button
+            type="button"
+            id="secret-ticket-btn"
+            class="secret-heart"
+            aria-label="Hmm… what’s this little heart?"
+          >
+            ♥
+          </button>
+          Lynn
+        </p>
         <p class="footer__line">
           made with the love Joe feels towards lynn every single day
         </p>
-        <!-- Secret: almost invisible — look near the bottom -->
-        <button
-          type="button"
-          id="secret-ticket-btn"
-          class="secret-btn"
-          aria-label="Hmm… what’s this?"
-          title=""
-        >
-          <span class="secret-btn__stub" aria-hidden="true"></span>
-        </button>
+        <p class="footer__hint" aria-hidden="true">psst… try the heart</p>
       </footer>
     </main>
 

@@ -1392,6 +1392,10 @@ body {
   color: var(--rose);
   line-height: 1;
   margin-bottom: 0.55rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
 }
 
 .footer__line {
@@ -1403,56 +1407,71 @@ body {
   line-height: 1.5;
 }
 
-/* Secret almost-invisible button */
 .footer {
   position: relative;
 }
 
-.secret-btn {
+.footer__hint {
+  margin-top: 0.85rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: lowercase;
+  color: rgba(194, 24, 91, 0.45);
+  font-weight: 500;
+  animation: hint-fade 3.2s ease-in-out infinite;
+}
+
+@keyframes hint-fade {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
+
+/* Secret: tap the heart between Joe and Lynn */
+.secret-heart {
   appearance: none;
   border: 0;
   background: transparent;
-  position: absolute;
-  right: 0.25rem;
-  bottom: 0.15rem;
-  width: 28px;
-  height: 18px;
-  padding: 0;
+  color: var(--rose-bright);
+  font-family: inherit;
+  font-size: 1.05em;
+  line-height: 1;
+  padding: 0.15rem 0.25rem;
   cursor: pointer;
-  opacity: 0.14;
-  transition: opacity 0.35s ease, transform 0.35s var(--ease-spring);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  animation: secret-pulse 1.8s ease-in-out infinite;
+  transition: transform 0.3s var(--ease-spring), color 0.2s ease, filter 0.2s ease;
+  touch-action: manipulation;
 }
 
-.secret-btn:hover,
-.secret-btn:focus-visible {
-  opacity: 0.55;
-  transform: scale(1.12);
+.secret-heart:hover,
+.secret-heart:focus-visible {
+  transform: scale(1.35);
+  color: var(--rose-deep);
+  filter: drop-shadow(0 0 10px rgba(240, 98, 146, 0.55));
+  animation: none;
 }
 
-.secret-btn:focus-visible {
-  outline: 1px solid rgba(194, 24, 91, 0.35);
-  outline-offset: 3px;
+.secret-heart:focus-visible {
+  outline: 2px solid var(--rose);
+  outline-offset: 4px;
+  border-radius: 0.35rem;
 }
 
-.secret-btn__stub {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border: 1px dashed rgba(194, 24, 91, 0.55);
-  border-radius: 3px;
-  background:
-    linear-gradient(90deg, rgba(194, 24, 91, 0.12) 40%, transparent 40%) 0 50% / 6px 1px repeat-x;
-  position: relative;
-}
-
-.secret-btn__stub::after {
-  content: "";
-  position: absolute;
-  left: 35%;
-  top: -2px;
-  bottom: -2px;
-  width: 0;
-  border-left: 1px dotted rgba(194, 24, 91, 0.4);
+@keyframes secret-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.18);
+  }
 }
 
 /* Naughty ticket modal */
@@ -1758,9 +1777,6 @@ body {
     transform: translate(50%, -50%);
   }
 
-  .secret-btn {
-    opacity: 0.22;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
