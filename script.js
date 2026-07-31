@@ -349,10 +349,10 @@
     "July", "August", "September", "October", "November", "December",
   ];
 
-  // Start calendar near the correct answer month
+  // Start at January of the answer year (she has to navigate to the real month)
   const answerParts = answers.askDate.split("-").map(Number);
   let viewYear = answerParts[0] || new Date().getFullYear();
-  let viewMonth = (answerParts[1] || 1) - 1;
+  let viewMonth = 0;
   let selectedISO = "";
 
   const today = new Date();
