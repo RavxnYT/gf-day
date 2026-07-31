@@ -701,7 +701,7 @@
 
   // ── Secret naughty ticket ──────────────────────────
   const ticketCfg = cfg.secretTicket || {};
-  const secretPassword = normalizeText(ticketCfg.password || "comegetme");
+  const secretPassword = normalizeText(ticketCfg.password || "iloveyou");
   const secretBtn = document.getElementById("secret-ticket-btn");
   const ticketModal = document.getElementById("secret-ticket");
   const secretPass = document.getElementById("secret-pass");

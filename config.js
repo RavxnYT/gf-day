@@ -13,7 +13,7 @@ window.GF_DAY = {
 
   // Secret naughty ticket (tap ♥ in footer) — password is case-insensitive
   secretTicket: {
-    password: "comegetme",
+    password: "iloveyou",
     dateLabel: "August 3",
     title: "VIP Night Pass",
     subtitle: "Redeemable on Joe. No refunds.",
