@@ -69,11 +69,18 @@
     );
   }
 
+  function fetchWithTimeout(url, ms = 8000) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), ms);
+    return fetch(url, { cache: "no-store", signal: ctrl.signal }).finally(() =>
+      clearTimeout(timer)
+    );
+  }
+
   async function fetchBeirutUnixMs() {
     const tryWorldTime = async () => {
-      const res = await fetch(
-        `https://worldtimeapi.org/api/timezone/${encodeURIComponent(timeZone)}`,
-        { cache: "no-store" }
+      const res = await fetchWithTimeout(
+        `https://worldtimeapi.org/api/timezone/${encodeURIComponent(timeZone)}`
       );
       if (!res.ok) throw new Error("worldtimeapi failed");
       const data = await res.json();
@@ -83,18 +90,15 @@
     };
 
     const tryTimeApi = async () => {
-      const res = await fetch(
-        `https://timeapi.io/api/Time/current/zone?timeZone=${encodeURIComponent(timeZone)}`,
-        { cache: "no-store" }
+      const res = await fetchWithTimeout(
+        `https://timeapi.io/api/Time/current/zone?timeZone=${encodeURIComponent(timeZone)}`
       );
       if (!res.ok) throw new Error("timeapi failed");
       const data = await res.json();
       if (data.dateTime) {
-        // dateTime is local Beirut wall time without offset — attach +03:00 in summer
         const iso = String(data.dateTime);
-        const withOffset = iso.includes("+") || iso.endsWith("Z")
-          ? iso
-          : `${iso}+03:00`;
+        const withOffset =
+          iso.includes("+") || iso.endsWith("Z") ? iso : `${iso}+03:00`;
         const parsed = Date.parse(withOffset);
         if (!Number.isNaN(parsed)) return parsed;
       }
@@ -106,8 +110,19 @@
       throw new Error("timeapi bad payload");
     };
 
+    // UTC internet clock, then treat as absolute unix (timezone checked via Intl)
+    const tryWorldTimeUtc = async () => {
+      const res = await fetchWithTimeout(
+        "https://worldtimeapi.org/api/timezone/Etc/UTC"
+      );
+      if (!res.ok) throw new Error("worldtime utc failed");
+      const data = await res.json();
+      if (typeof data.unixtime === "number") return data.unixtime * 1000;
+      throw new Error("worldtime utc bad payload");
+    };
+
     const errors = [];
-    for (const fn of [tryWorldTime, tryTimeApi]) {
+    for (const fn of [tryWorldTime, tryTimeApi, tryWorldTimeUtc]) {
       try {
         return await fn();
       } catch (err) {
@@ -259,19 +274,31 @@
   const ctx = canvas?.getContext("2d");
   let particles = [];
 
+  function viewportSize() {
+    const vv = window.visualViewport;
+    return {
+      w: Math.round(vv?.width || window.innerWidth || document.documentElement.clientWidth),
+      h: Math.round(vv?.height || window.innerHeight || document.documentElement.clientHeight),
+    };
+  }
+
   function resize() {
     if (!canvas || !ctx) return;
-    canvas.width = window.innerWidth * devicePixelRatio;
-    canvas.height = window.innerHeight * devicePixelRatio;
-    canvas.style.width = `${window.innerWidth}px`;
-    canvas.style.height = `${window.innerHeight}px`;
-    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    const { w, h } = viewportSize();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2); // cap DPR for iPhone perf
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = `${w}px`;
+    canvas.style.height = `${h}px`;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
   function maxParticles() {
-    if (window.innerWidth < 480) return 34;
-    if (window.innerWidth < 900) return 55;
-    return 72;
+    const { w } = viewportSize();
+    if (w < 430) return 22; // iPhone 12/13/14 Pro Max class
+    if (w < 480) return 28;
+    if (w < 900) return 45;
+    return 64;
   }
 
   function spawnParticle(force = false, burst = false) {
@@ -286,14 +313,13 @@
           ? 6 + Math.random() * 10
           : 8 + Math.random() * 20;
 
+    const { w, h } = viewportSize();
     particles.push({
       type,
-      x: burst
-        ? window.innerWidth * 0.5 + (Math.random() - 0.5) * 120
-        : Math.random() * window.innerWidth,
+      x: burst ? w * 0.5 + (Math.random() - 0.5) * 120 : Math.random() * w,
       y: burst
-        ? window.innerHeight * 0.55 + (Math.random() - 0.5) * 80
-        : window.innerHeight + 20 + Math.random() * 60,
+        ? h * 0.55 + (Math.random() - 0.5) * 80
+        : h + 20 + Math.random() * 60,
       size,
       speed: burst ? 1.5 + Math.random() * 3 : 0.3 + Math.random() * 1.25,
       sway: 0.35 + Math.random() * 1.6,
@@ -320,9 +346,10 @@
 
   function tickParticles() {
     if (!ctx) return;
-    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    const { w, h } = viewportSize();
+    ctx.clearRect(0, 0, w, h);
 
-    if (!reducedMotion && Math.random() < 0.45) spawnParticle();
+    if (!reducedMotion && Math.random() < (w < 430 ? 0.28 : 0.45)) spawnParticle();
 
     for (let i = particles.length - 1; i >= 0; i--) {
       const p = particles[i];
@@ -381,12 +408,27 @@
 
   if (canvas && ctx && !reducedMotion) {
     resize();
+    const { h } = viewportSize();
     for (let i = 0; i < maxParticles(); i++) {
       spawnParticle(true);
-      particles[i].y = Math.random() * window.innerHeight;
+      particles[i].y = Math.random() * h;
     }
     window.addEventListener("resize", resize);
+    window.visualViewport?.addEventListener("resize", resize);
     tickParticles();
+  }
+
+  // iOS-friendly scroll lock (keeps page from scrolling under overlays)
+  let lockedScrollY = 0;
+  function lockScroll() {
+    lockedScrollY = window.scrollY || window.pageYOffset || 0;
+    document.body.classList.add("is-scroll-locked");
+    document.body.style.top = `-${lockedScrollY}px`;
+  }
+  function unlockScroll() {
+    document.body.classList.remove("is-scroll-locked");
+    document.body.style.top = "";
+    window.scrollTo(0, lockedScrollY);
   }
 
   // ── Gate open → quiz → story ───────────────────────
@@ -422,7 +464,7 @@
   function showUnlock() {
     if (!unlockEl) return;
     unlockEl.hidden = false;
-    document.body.style.overflow = "hidden";
+    lockScroll();
     requestAnimationFrame(() => {
       unlockEl.classList.add("is-open");
       unlockEl.scrollTop = 0;
@@ -434,7 +476,7 @@
     if (unlocked) return;
     unlocked = true;
     unlockEl?.classList.add("is-gone");
-    document.body.style.overflow = "";
+    unlockScroll();
     setTimeout(() => {
       if (unlockEl) unlockEl.hidden = true;
     }, 700);
@@ -1015,7 +1057,7 @@
   function openSecretPass() {
     if (!unlocked || !secretPass) return;
     secretPass.hidden = false;
-    document.body.style.overflow = "hidden";
+    lockScroll();
     if (secretPassError) secretPassError.hidden = true;
     secretPassForm?.classList.remove("is-wrong");
     if (secretPassInput) secretPassInput.value = "";
@@ -1026,11 +1068,11 @@
     });
   }
 
-  function closeSecretPass() {
+  function closeSecretPass(opts = {}) {
     if (!secretPass) return;
     secretPass.classList.remove("is-open");
-    if (!ticketModal || ticketModal.hidden) {
-      document.body.style.overflow = "";
+    if (!opts.keepLocked && (!ticketModal || ticketModal.hidden)) {
+      unlockScroll();
     }
     setTimeout(() => {
       secretPass.hidden = true;
@@ -1039,9 +1081,9 @@
 
   function openTicket() {
     if (!unlocked || !ticketModal) return;
-    closeSecretPass();
+    closeSecretPass({ keepLocked: true });
     ticketModal.hidden = false;
-    document.body.style.overflow = "hidden";
+    lockScroll();
     requestAnimationFrame(() => {
       ticketModal.classList.add("is-open");
       ticketModal.scrollTop = 0;
@@ -1053,7 +1095,7 @@
   function closeTicket() {
     if (!ticketModal) return;
     ticketModal.classList.remove("is-open");
-    document.body.style.overflow = "";
+    unlockScroll();
     setTimeout(() => {
       ticketModal.hidden = true;
     }, 400);

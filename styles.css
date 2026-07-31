@@ -24,10 +24,13 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   min-height: 100vh;
+  min-height: 100dvh;
   font-family: var(--font-body);
   color: var(--ink);
   background:
@@ -39,6 +42,27 @@ body {
   overflow-x: hidden;
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: rgba(194, 24, 91, 0.12);
+}
+
+body.is-scroll-locked {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overscroll-behavior: none;
+}
+
+button,
+input {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+button {
+  color: inherit;
+  font: inherit;
 }
 
 #hearts-canvas {
@@ -230,7 +254,11 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: max(1rem, env(safe-area-inset-top, 0px)) 1rem max(1rem, env(safe-area-inset-bottom, 0px));
+  padding:
+    max(1rem, env(safe-area-inset-top, 0px))
+    max(1rem, env(safe-area-inset-right, 0px))
+    max(1rem, env(safe-area-inset-bottom, 0px))
+    max(1rem, env(safe-area-inset-left, 0px));
   background:
     radial-gradient(ellipse at center, rgba(255, 245, 248, 0.97) 0%, rgba(255, 200, 220, 0.98) 75%);
   transition:
@@ -241,7 +269,7 @@ body {
 
 .gate.is-held,
 .gate[hidden] {
-  display: none;
+  display: none !important;
 }
 
 .gate.is-gone {
@@ -931,9 +959,14 @@ body {
 .story {
   position: relative;
   z-index: 1;
-  width: min(880px, calc(100% - 1.5rem));
+  width: min(
+    880px,
+    calc(100% - 1.5rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))
+  );
   margin: 0 auto;
-  padding-bottom: 5rem;
+  padding-bottom: max(5rem, calc(3rem + env(safe-area-inset-bottom, 0px)));
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 .story.is-locked {
@@ -973,14 +1006,19 @@ body {
 /* ── Hero ─────────────────────────────────────────── */
 .hero {
   min-height: 100svh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 5rem 0 3.5rem;
+  padding:
+    max(5rem, calc(3.5rem + env(safe-area-inset-top, 0px)))
+    0.25rem
+    3.5rem;
   gap: 1.1rem;
   position: relative;
+  overflow: visible;
 }
 
 .hero__bloom {
@@ -1821,7 +1859,7 @@ body {
   background: #fff;
   color: var(--ink);
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: 16px; /* keep ≥16px to avoid iOS zoom */
   padding: 0.85rem 0.95rem;
   border-radius: 0.55rem;
   outline: none;
@@ -2304,7 +2342,7 @@ body {
   }
 
   .letter__paper {
-    padding: 1.75rem 1.25rem 2.25rem;
+    padding: 1.75rem 1.15rem 2.25rem;
   }
 
   .letter__wax {
@@ -2324,7 +2362,10 @@ body {
   }
 
   .story {
-    width: calc(100% - 1.25rem);
+    width: min(
+      100%,
+      calc(100% - 1.25rem - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))
+    );
   }
 
   .section-head h2 {
@@ -2333,5 +2374,58 @@ body {
 
   .pulse__heart {
     width: min(170px, 52vw);
+  }
+
+  .choice__btn {
+    min-height: 48px;
+  }
+
+  .ticket__main {
+    padding: 1.15rem 1rem 1rem;
+  }
+
+  .ticket__found {
+    padding: 0 0.5rem;
+  }
+}
+
+/* iPhone / touch devices — Pro Max friendly */
+@media (hover: none) and (pointer: coarse) {
+  body {
+    background-attachment: scroll; /* fixed backgrounds break on iOS Safari */
+  }
+
+  .aurora {
+    filter: blur(4px);
+    inset: -10%;
+  }
+
+  .cal__day {
+    min-height: 40px;
+  }
+
+  .gate__btn,
+  .unlock__submit,
+  .choice__btn,
+  .promise__btn,
+  .secret-heart,
+  .secret-pass__submit,
+  .ticket__close {
+    min-height: 44px;
+  }
+}
+
+/* iPhone 12 Pro Max width band (~428css px) */
+@media (min-width: 390px) and (max-width: 430px) {
+  .hero__script {
+    font-size: clamp(3.6rem, 16vw, 5.2rem);
+    line-height: 1.55;
+    padding: 0.42em 0.12em 0.48em;
+  }
+
+  .unlock__panel,
+  .secret-pass__panel,
+  .ticket {
+    width: min(400px, 100%);
   }
 }
