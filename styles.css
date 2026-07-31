@@ -873,15 +873,24 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
-  line-height: 1;
+  gap: 0.15rem;
+  line-height: 1.15;
+  overflow: visible;
+  width: 100%;
+  padding: 0.35rem 0.25rem;
 }
 
 .hero__script {
   font-family: var(--font-script);
-  font-size: clamp(5rem, 18vw, 9.5rem);
+  font-size: clamp(4.2rem, 16vw, 8.5rem);
   font-weight: 400;
-  line-height: 0.9;
+  line-height: 1.28;
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0.22em 0.2em 0.3em;
+  overflow: visible;
   background: linear-gradient(
     115deg,
     var(--rose-deep) 0%,
@@ -894,8 +903,9 @@ body {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
   animation: name-shimmer 5s ease-in-out infinite;
-  filter: drop-shadow(0 10px 24px rgba(194, 24, 91, 0.18));
 }
 
 @keyframes name-shimmer {
@@ -1060,6 +1070,20 @@ body {
   color: var(--ink-soft);
   white-space: pre-wrap;
   min-height: 8rem;
+}
+
+.letter__body.is-waiting::before {
+  content: "Keep scrolling… your letter is waiting";
+  display: block;
+  font-family: var(--font-script);
+  font-size: clamp(1.35rem, 4vw, 1.6rem);
+  color: rgba(194, 24, 91, 0.45);
+  white-space: normal;
+}
+
+.letter__body.is-typing::before,
+.letter__body.is-done::before {
+  content: none;
 }
 
 .letter__body .cursor {
@@ -2063,7 +2087,9 @@ body {
   }
 
   .hero__script {
-    font-size: clamp(3.8rem, 22vw, 6.5rem);
+    font-size: clamp(3.6rem, 18vw, 6rem);
+    line-height: 1.3;
+    padding: 0.25em 0.18em 0.32em;
   }
 
   .hero__lead {

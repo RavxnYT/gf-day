@@ -550,41 +550,66 @@
     });
   }
 
-  // ── Typewriter ─────────────────────────────────────
+  // ── Typewriter (only when letter scrolls into view) ─
   const typeEl = document.getElementById("typewriter");
   let typingStarted = false;
+  let typeObserver = null;
+
+  if (typeEl) {
+    typeEl.textContent = "";
+    typeEl.classList.add("is-waiting");
+  }
 
   function startTypewriterWhenReady() {
     if (!typeEl || typingStarted) return;
 
-    if (reducedMotion) {
-      typeEl.textContent = letterText;
-      typingStarted = true;
-      return;
-    }
+    // Observe the letter paper itself — must be well on screen
+    const target =
+      document.querySelector(".letter__paper") ||
+      document.getElementById("letter") ||
+      typeEl;
 
-    const letterSection = document.getElementById("letter");
-    const typeObserver = new IntersectionObserver(
+    typeObserver?.disconnect();
+    typeObserver = new IntersectionObserver(
       (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          typeObserver.disconnect();
-          runTypewriter();
-        }
+        const hit = entries.some(
+          (e) => e.isIntersecting && e.intersectionRatio >= 0.45
+        );
+        if (!hit) return;
+        typeObserver?.disconnect();
+        runTypewriter();
       },
-      { threshold: 0.3 }
+      {
+        threshold: [0, 0.25, 0.45, 0.6, 0.8],
+        rootMargin: "0px 0px -12% 0px",
+      }
     );
-    if (letterSection) typeObserver.observe(letterSection);
+    typeObserver.observe(target);
   }
 
   function runTypewriter() {
     if (!typeEl || typingStarted) return;
     typingStarted = true;
+    typeEl.classList.remove("is-waiting");
+    typeEl.classList.add("is-ready", "is-typing");
+
+    if (reducedMotion) {
+      typeEl.textContent = letterText;
+      typeEl.classList.remove("is-typing");
+      typeEl.classList.add("is-done");
+      return;
+    }
+
     typeEl.innerHTML = '<span class="cursor"></span>';
     const cursor = typeEl.querySelector(".cursor");
     let i = 0;
 
     function step() {
-      if (i >= letterText.length) return;
+      if (i >= letterText.length) {
+        typeEl.classList.remove("is-typing");
+        typeEl.classList.add("is-done");
+        return;
+      }
       const ch = letterText[i];
       typeEl.insertBefore(document.createTextNode(ch), cursor);
       i += 1;
@@ -597,7 +622,7 @@
       setTimeout(step, delay);
     }
 
-    setTimeout(step, 350);
+    setTimeout(step, 280);
   }
 
   // ── Hold-to-love heart ─────────────────────────────
