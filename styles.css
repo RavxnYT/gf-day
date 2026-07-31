@@ -1411,26 +1411,6 @@ body {
   position: relative;
 }
 
-.footer__hint {
-  margin-top: 0.85rem;
-  font-size: 0.72rem;
-  letter-spacing: 0.14em;
-  text-transform: lowercase;
-  color: rgba(194, 24, 91, 0.45);
-  font-weight: 500;
-  animation: hint-fade 3.2s ease-in-out infinite;
-}
-
-@keyframes hint-fade {
-  0%,
-  100% {
-    opacity: 0.35;
-  }
-  50% {
-    opacity: 0.75;
-  }
-}
-
 /* Secret: tap the heart between Joe and Lynn */
 .secret-heart {
   appearance: none;
