@@ -250,10 +250,12 @@
 
   // ── Unlock quiz steps ──────────────────────────────
   let step = 0;
+  const totalSteps = 4;
   const forms = [
     document.getElementById("q1-form"),
     document.getElementById("q2-form"),
     document.getElementById("q3-form"),
+    document.getElementById("q4-form"),
   ];
   const stepLabel = document.getElementById("unlock-step");
   const dots = document.querySelectorAll(".unlock__dot");
@@ -271,12 +273,13 @@
       dot.classList.toggle("is-active", i === step);
       dot.classList.toggle("is-done", i < step);
     });
-    if (stepLabel) stepLabel.textContent = `Question ${step + 1} of 3`;
+    if (stepLabel) stepLabel.textContent = `Question ${step + 1} of ${totalSteps}`;
 
     if (unlockEl) unlockEl.scrollTop = 0;
 
     if (step === 0) document.getElementById("q1-input")?.focus({ preventScroll: true });
     if (step === 2) document.getElementById("q3-input")?.focus({ preventScroll: true });
+    if (step === 3) document.getElementById("choice-yes")?.focus({ preventScroll: true });
   }
 
   function showError(id, form) {
@@ -330,11 +333,61 @@
     const value = normalizeText(input?.value || "");
     if (value === answers.fillBlank) {
       hideError("q3-error", forms[2]);
-      revealStory();
+      if (!reducedMotion) burstParticles(12);
+      setStep(3);
     } else {
       showError("q3-error", forms[2]);
       input?.select();
     }
+  });
+
+  // ── August 3 yes / runaway no ─────────────────────────
+  const dateChoice = document.getElementById("date-choice");
+  const choiceYes = document.getElementById("choice-yes");
+  const choiceNo = document.getElementById("choice-no");
+  const choiceTease = document.getElementById("choice-tease");
+  let noDodges = 0;
+  let lastDodge = 0;
+
+  const teaseLines = [
+    "Nice try…",
+    "Nope — that button runs from commitment.",
+    "August 3 is calling…",
+    "Joe already cleared his schedule.",
+    "There’s only one right answer ☺",
+  ];
+
+  function dodgeNo(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!dateChoice) return;
+
+    const now = performance.now();
+    if (now - lastDodge < 300) return;
+    lastDodge = now;
+
+    dateChoice.classList.toggle("is-swapped");
+    noDodges += 1;
+
+    choiceNo?.classList.remove("is-hop");
+    void choiceNo?.offsetWidth;
+    choiceNo?.classList.add("is-hop");
+
+    if (choiceTease) {
+      choiceTease.textContent = teaseLines[Math.min(noDodges - 1, teaseLines.length - 1)];
+    }
+  }
+
+  // Hover on desktop + tap/click on mobile (cooldown avoids double-swap)
+  choiceNo?.addEventListener("pointerenter", (e) => {
+    if (e.pointerType === "mouse") dodgeNo(e);
+  });
+  choiceNo?.addEventListener("click", dodgeNo);
+
+  choiceYes?.addEventListener("click", () => {
+    if (choiceTease) choiceTease.textContent = "That’s my girl.";
+    if (!reducedMotion) burstParticles(24);
+    setTimeout(() => revealStory(), reducedMotion ? 0 : 420);
   });
 
   // ── Professional calendar ──────────────────────────

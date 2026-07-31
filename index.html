@@ -56,12 +56,13 @@
       <div class="unlock__panel">
         <p class="unlock__kicker">Almost there</p>
         <h2 id="unlock-title" class="unlock__title">Answer these to open your letter</h2>
-        <p class="unlock__step" id="unlock-step">Question 1 of 3</p>
+        <p class="unlock__step" id="unlock-step">Question 1 of 4</p>
 
         <div class="unlock__progress" aria-hidden="true">
           <span class="unlock__dot is-active" data-dot="0"></span>
           <span class="unlock__dot" data-dot="1"></span>
           <span class="unlock__dot" data-dot="2"></span>
+          <span class="unlock__dot" data-dot="3"></span>
         </div>
 
         <!-- Q1 nickname -->
@@ -128,8 +129,24 @@
             />
           </div>
           <p class="unlock__error" id="q3-error" hidden>So close — think bigger.</p>
-          <button type="submit" class="unlock__submit">Open my letter</button>
+          <button type="submit" class="unlock__submit">Continue</button>
         </form>
+
+        <!-- Q4 date invite -->
+        <div class="unlock__form" id="q4-form" data-step="3" hidden>
+          <p class="unlock__question">
+            Will you go out with Joe on <em>August 3</em>?
+          </p>
+          <p class="unlock__tease" id="choice-tease" aria-live="polite"></p>
+          <div class="choice" id="date-choice">
+            <button type="button" id="choice-yes" class="choice__btn choice__btn--yes">
+              Yes
+            </button>
+            <button type="button" id="choice-no" class="choice__btn choice__btn--no">
+              No
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
