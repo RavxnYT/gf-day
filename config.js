@@ -20,7 +20,7 @@ window.GF_DAY = {
   // Secret naughty ticket (tap ♥ in footer) — password is case-insensitive
   secretTicket: {
     password: "iloveyou",
-    dateLabel: "August 3",
+    dateLabel: "August 6",
     title: "VIP Night Pass",
     subtitle: "Redeemable on Joe. No refunds.",
     perks: [
@@ -29,7 +29,7 @@ window.GF_DAY = {
       "Valid one night only. Bring this smile… and nothing else if you want.",
     ],
     finePrint:
-      "By finding this ticket, Lynn agrees Joe is hers to ruin on August 3. No rain checks.",
+      "By finding this ticket, Lynn agrees Joe is hers to ruin on August 6. No rain checks.",
   },
 
   letter: `I hope this finds you smiling. I made this little corner of the internet just for you, because “I love you” in a text never feels like enough.

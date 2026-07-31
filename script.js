@@ -656,7 +656,7 @@
     }
   });
 
-  // ── August 3 yes / runaway no ─────────────────────────
+  // ── August 6 yes / runaway no ─────────────────────────
   const dateChoice = document.getElementById("date-choice");
   const choiceYes = document.getElementById("choice-yes");
   const choiceNo = document.getElementById("choice-no");
@@ -667,7 +667,7 @@
   const teaseLines = [
     "Nice try…",
     "Nope — that button runs from commitment.",
-    "August 3 is calling…",
+    "August 6 is calling…",
     "Joe already cleared his schedule.",
     "There’s only one right answer ☺",
   ];
@@ -1110,7 +1110,7 @@
   const ticketFine = document.getElementById("ticket-fine");
 
   if (ticketName) ticketName.textContent = herName;
-  if (ticketDate) ticketDate.textContent = ticketCfg.dateLabel || "August 3";
+  if (ticketDate) ticketDate.textContent = ticketCfg.dateLabel || "August 6";
   if (ticketTitle) ticketTitle.textContent = ticketCfg.title || "VIP Night Pass";
   if (ticketSub) ticketSub.textContent = ticketCfg.subtitle || "";
   if (ticketFine) ticketFine.textContent = ticketCfg.finePrint || "";
